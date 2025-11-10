@@ -41,7 +41,6 @@ public class AuthController {
         return ResponseEntity.ok(new TokenResponse(token, "Bearer", expires));
     }
 
-    // opcional: cadastro para o lab
     @PostMapping("/signup")
     public ResponseEntity<Void> signup(@RequestBody User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));

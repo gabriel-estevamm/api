@@ -1,5 +1,6 @@
 package com.api.voting.security.jwt;
 
+import com.api.voting.exception.TokenException;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -41,7 +42,7 @@ public class JwtTokenService {
             signed.sign(new MACSigner(secret.getBytes()));
             return signed.serialize();
         } catch (JOSEException e) {
-            throw new RuntimeException("Falha ao gerar token JWT", e);
+            throw new TokenException("Falha ao gerar token JWT "+ e);
         }
     }
 
@@ -49,16 +50,16 @@ public class JwtTokenService {
         try {
             var signed = SignedJWT.parse(token);
             var verifier = new MACVerifier(secret.getBytes());
-            if (!signed.verify(verifier)) throw new RuntimeException("Assinatura inválida");
+            if (!signed.verify(verifier)) throw new TokenException("Assinatura inválida");
 
             var claims = signed.getJWTClaimsSet();
             var now = new Date();
             if (claims.getExpirationTime() == null || claims.getExpirationTime().before(now)) {
-                throw new RuntimeException("Token expirado");
+                throw new TokenException("Token expirado");
             }
             return claims;
         } catch (Exception e) {
-            throw new RuntimeException("Token inválido", e);
+            throw new TokenException("Token inválido " +  e);
         }
     }
 }
