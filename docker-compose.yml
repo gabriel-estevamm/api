@@ -1,19 +1,5 @@
 version: "3.9"
 services:
-  app:
-    build: .
-    container_name: voting-app
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mysql
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/voting?useSSL=false&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      JWT_SECRET: ${JWT_SECRET}
-      SECURITY_JWT_ISSUER: ${SECURITY_JWT_ISSUER}
-      SECURITY_JWT_EXPIRATION_MINUTES: ${SECURITY_JWT_EXPIRATION_MINUTES}
   mysql:
     image: mysql:8.0
     container_name: voting-db
@@ -23,3 +9,28 @@ services:
       MYSQL_DATABASE: voting
     ports:
       - "3306:3306"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.6
+    container_name: voting-keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8081:8080"
+
+  app:
+    build: .
+    container_name: voting-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - keycloak
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/voting?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/voting
